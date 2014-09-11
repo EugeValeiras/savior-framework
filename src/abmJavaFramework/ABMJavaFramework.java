@@ -23,7 +23,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
 import javax.swing.SpringLayout;
 
 import abmJavaFramework.annotations.Buscador;
@@ -65,8 +64,9 @@ public class ABMJavaFramework {
   static DefaultListModel<Object> objetos;
   static DefaultListModel<Object> objetosBuscados;
   static SpringLayout springLayout = new SpringLayout();
-
-  public static void start(Class<?> c, DefaultListModel<?> objs) {
+  static ABMJavaFramework window;
+  
+  public static void start(final Class<?> abmClass, Class<?> c, DefaultListModel<?> objs) {
     clase = c;
     objetos = (DefaultListModel<Object>) objs;
     objetosBuscados = new DefaultListModel<Object>();
@@ -74,8 +74,9 @@ public class ABMJavaFramework {
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
-          ABMJavaFramework window = new ABMJavaFramework();
+          window = (ABMJavaFramework) abmClass.newInstance();
           window.frame.setVisible(true);
+          window.inicializarDefaultListModel(objetos);
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -87,13 +88,13 @@ public class ABMJavaFramework {
    * Crear Aplicacion.
    */
   public ABMJavaFramework() {
-    _initialize();
+    initialize();
   }
 
   /**
    * Inicializad los contenidos de la ventana.
    */
-  private static void _initialize() {
+  public static void initialize() {
     // Inicializamos la ventana
     frame = new JFrame();
     frame.setBounds(0, 0, 700, 700);
@@ -103,9 +104,8 @@ public class ABMJavaFramework {
     listaRBSi = new HashMap<String, JRadioButton>();
     listaRBNo = new HashMap<String, JRadioButton>();
     listaRBgroup = new HashMap<String, ButtonGroup>();
-    final JList jList = new JList(objetos);
+    final JList<Object> jList = new JList<Object>(objetos);
     jList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-    ;
 
     // Crear y Ubicar Lista con su respectivo Scroll
     JScrollPane scrollPane = new JScrollPane();
@@ -153,7 +153,7 @@ public class ABMJavaFramework {
       @Override
       public void actionPerformed(ActionEvent e) {
         try {
-          _agregarObjetoALista(jList);
+          window.agregarObjetoALista(jList);
           jList.clearSelection();
         } catch (Exception ex) {
           System.out.println("Error al agregar objeto");
@@ -177,7 +177,7 @@ public class ABMJavaFramework {
     btnBorrar.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        _removeObjectFromList(jList);
+        window.removeObjectFromList(jList);
         jList.clearSelection();
       }
     });
@@ -194,7 +194,7 @@ public class ABMJavaFramework {
     btnModificar.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        _modificarObjetoDeLista(jList);
+        window.modificarObjetoDeLista(jList);
         btnAgregar.setEnabled(true);
         btnBorrar.setEnabled(false);
         btnModificar.setEnabled(false);
@@ -249,7 +249,7 @@ public class ABMJavaFramework {
         btnBuscar.setEnabled(true);
         btnIniciarBuscar.setVisible(false);
         btnIniciarBuscar.setEnabled(false);
-        _iniciarBusqueda(jList);
+        window.iniciarBusqueda(jList);
       }
     });
 
@@ -264,7 +264,7 @@ public class ABMJavaFramework {
     btnBuscar.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        _BuscarObjetoALista(jList);
+        window.buscarObjetoALista(jList);
 
       }
     });
@@ -280,42 +280,22 @@ public class ABMJavaFramework {
     btnSalir.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        _Salir(jList);
+        window.salir(jList);
         jList.clearSelection();
       }
     });
 
   }
 
-  private static void _removeObjectFromList(JList<Object> list) {
-    try {
-      objetos.removeElement(list.getSelectedValue());
-      objetosBuscados.removeElement(list.getSelectedValue());
-      _limpiarLista(list);
-    } catch (Exception e) {
-      _lanzarPopUp(e, "Selecciona uno antes de borrar!");
-    }
+  public void inicializarDefaultListModel(DefaultListModel<Object> objetos2) {
+    //VACIO PORQUE LO TRAIGO INICIALIZADO POR DEFECTO SOLO PARA QUE LO SOBREESCRIBAN
   }
 
-  private static void _modificarObjetoDeLista(JList<Object> list) {
-    try {
-      Object objetoAModificar = (objetos.get(list.getSelectedIndex()));
-      Field[] fields = Class.forName(clase.getName()).getFields();
-      Boolean camposNoCompletos = false;
-      camposNoCompletos = _CompletarObjetoConDatos(objetoAModificar, fields, camposNoCompletos, true);
-      if (!camposNoCompletos) {
-        objetos.addElement(objetoAModificar);
-        _limpiarLista(list);
-        _setAllEditable(list);
-      }
-    } catch (Exception e) {
-      _lanzarPopUp(e, "\nError al modificar el objeto.." + "\nMirar:" + "\nLa falta de un String Contructor de alguno de los fields del objeto " + "\nMal tipo de dato de alguno de los campos...");
-    }
-
-    frame.repaint();
+  public void salir(JList<Object> jList) {
+    frame.dispose();
   }
 
-  private static void _agregarObjetoALista(JList<Object> list) {
+  public void agregarObjetoALista(JList<Object> list) {
     Object newObj = null;
     try {
       newObj = clase.newInstance();
@@ -331,6 +311,99 @@ public class ABMJavaFramework {
       _lanzarPopUp(ex, "\nAlgo esta andando mal al crear el objeto.. " + "\nMirar: " + "\nLa falta de un String Contructor de alguno de los fields del objeto "
           + "\nMal tipo de dato de alguno de los campos...");
     }
+  }
+
+  public void removeObjectFromList(JList<Object> list) {
+    try {
+      objetos.removeElement(list.getSelectedValue());
+      objetosBuscados.removeElement(list.getSelectedValue());
+      _limpiarLista(list);
+    } catch (Exception e) {
+      _lanzarPopUp(e, "Selecciona uno antes de borrar!");
+    }
+  }
+
+  public void modificarObjetoDeLista(JList<Object> list) {
+    try {
+      Object objetoAModificar = (objetos.get(list.getSelectedIndex()));
+      Field[] fields = Class.forName(clase.getName()).getFields();
+      Boolean camposNoCompletos = false;
+      camposNoCompletos = _CompletarObjetoConDatos(objetoAModificar, fields, camposNoCompletos, true);
+      if (!camposNoCompletos) {
+        _limpiarLista(list);
+        _setAllEditable(list);
+      }
+    } catch (Exception e) {
+      _lanzarPopUp(e, "\nError al modificar el objeto.." + "\nMirar:" + "\nLa falta de un String Contructor de alguno de los fields del objeto " + "\nMal tipo de dato de alguno de los campos...");
+    }
+
+    frame.repaint();
+  }
+
+  public void iniciarBusqueda(JList<Object> list) {
+    _limpiarLista(list);
+    try {
+      list.setModel(objetosBuscados);
+      Field[] fields = Class.forName(clase.getName()).getFields();
+      for (int i = 0; i < fields.length; i++) {
+        FieldABM field = fields[i].getAnnotation(FieldABM.class);
+        Buscador buscador = fields[i].getAnnotation(Buscador.class);
+        if (buscador == null) {
+          representationType representacion = field.representacion();
+          if (representacion == representationType.AUTOMATICO) {
+            if (fields[i].getType() == Boolean.class) {
+              // Si es un bool
+              listaRBSi.get(field.nombre()).setEnabled(false);
+              listaRBNo.get(field.nombre()).setEnabled(false);
+            } else /* Si no lo es */{
+              listaTF.get(field.nombre()).setEditable(false);
+            }
+          } else if (representacion == representationType.TEXTFIELD) {
+            listaTF.get(field.nombre()).setEditable(false);
+          } else if (representacion == representationType.RADIOBUTTON) {
+            listaRBSi.get(field.nombre()).setEnabled(false);
+            listaRBNo.get(field.nombre()).setEnabled(false);
+          } else if (representacion == representationType.SELECTITEM) {
+            // TODO
+          } else if (representacion == representationType.DATETIME) {
+            // TODO
+          }
+        }
+
+      }
+
+    } catch (Exception e) {
+      _lanzarPopUp("MIRARME");
+    } finally {
+      // _BuscarObjetoALista(list);
+    }
+  }
+
+  public void buscarObjetoALista(JList<Object> list) {
+    Object objABuscar = null;
+    objetosBuscados.clear();
+    try {
+      objABuscar = clase.newInstance();
+      Field[] fields = Class.forName(clase.getName()).getFields();
+      Boolean camposNoCompletos = false;
+      camposNoCompletos = _CompletarObjetoConDatos(objABuscar, fields, camposNoCompletos, false);
+      _buscar(objABuscar, list);
+      // TODO BUSCAR OBJETO! -
+    } catch (Exception e) {
+      _lanzarPopUp(e);
+    }
+  }
+
+  private static void _listSelectedMethod(JList<Object> jList) {
+    btnAgregar.setEnabled(false);
+    btnBorrar.setEnabled(true);
+    btnModificar.setEnabled(true);
+    btnBuscar.setVisible(false);
+    btnIniciarBuscar.setVisible(true);
+    btnBuscar.setEnabled(false);
+    btnIniciarBuscar.setEnabled(false);
+
+    _AddDataToText(jList);
   }
 
   private static Boolean _CompletarObjetoConDatos(Object newObj, Field[] fields, Boolean camposNoCompletos, Boolean lanzarPopUps) throws NoSuchMethodException, InstantiationException,
@@ -610,7 +683,7 @@ public class ABMJavaFramework {
     return lavelAlumno;
   }
 
-  private static void _setAllEditable(JList jList) {
+  private static void _setAllEditable(JList<Object> jList) {
     try {
       Field[] fields = Class.forName(clase.getName()).getFields();
       posLabel = 40;
@@ -632,7 +705,7 @@ public class ABMJavaFramework {
     }
   }
 
-  private static void _limpiarLista(JList jList) {
+  private static void _limpiarLista(JList<Object> jList) {
     jList.clearSelection();
     try {
       Field[] fields = Class.forName(clase.getName()).getFields();
@@ -654,22 +727,6 @@ public class ABMJavaFramework {
     }
   }
 
-  private static void _listSelectedMethod(final JList jList) {
-    btnAgregar.setEnabled(false);
-    btnBorrar.setEnabled(true);
-    btnModificar.setEnabled(true);
-    btnBuscar.setVisible(false);
-    btnIniciarBuscar.setVisible(true);
-    btnBuscar.setEnabled(false);
-    btnIniciarBuscar.setEnabled(false);
-
-    _AddDataToText(jList);
-  }
-
-  private static void _Salir(JList jList) {
-    frame.dispose();
-  }
-
   private static void _lanzarPopUp(Exception ex, String str) {
     JOptionPane.showMessageDialog(frame.getContentPane(), ex + " " + str);
   }
@@ -682,61 +739,15 @@ public class ABMJavaFramework {
     JOptionPane.showMessageDialog(frame.getContentPane(), str);
   }
 
-  private static void _iniciarBusqueda(JList list) {
-    _limpiarLista(list);
-    try {
-      list.setModel(objetosBuscados);
-      Field[] fields = Class.forName(clase.getName()).getFields();
-      for (int i = 0; i < fields.length; i++) {
-        FieldABM field = fields[i].getAnnotation(FieldABM.class);
-        Buscador buscador = fields[i].getAnnotation(Buscador.class);
-        if (buscador == null) {
-          representationType representacion = field.representacion();
-          if (representacion == representationType.AUTOMATICO) {
-            if (fields[i].getType() == Boolean.class) {
-              // Si es un bool
-              listaRBSi.get(field.nombre()).setEnabled(false);
-              listaRBNo.get(field.nombre()).setEnabled(false);
-            } else /* Si no lo es */{
-              listaTF.get(field.nombre()).setEditable(false);
-            }
-          } else if (representacion == representationType.TEXTFIELD) {
-            listaTF.get(field.nombre()).setEditable(false);
-          } else if (representacion == representationType.RADIOBUTTON) {
-            listaRBSi.get(field.nombre()).setEnabled(false);
-            listaRBNo.get(field.nombre()).setEnabled(false);
-          } else if (representacion == representationType.SELECTITEM) {
-            // TODO
-          } else if (representacion == representationType.DATETIME) {
-            // TODO
-          }
-        }
-
-      }
-
-    } catch (Exception e) {
-      _lanzarPopUp("MIRARME");
-    } finally {
-      // _BuscarObjetoALista(list);
+  private static String getNombreAttr(FieldABM fieldAnotation, Field field) {
+    if (fieldAnotation.nombre() != null) {
+      return fieldAnotation.nombre();
+    } else {
+      return field.getName();
     }
   }
 
-  private static void _BuscarObjetoALista(JList list) {
-    Object objABuscar = null;
-    objetosBuscados.clear();
-    try {
-      objABuscar = clase.newInstance();
-      Field[] fields = Class.forName(clase.getName()).getFields();
-      Boolean camposNoCompletos = false;
-      camposNoCompletos = _CompletarObjetoConDatos(objABuscar, fields, camposNoCompletos, false);
-      _buscar(objABuscar, list);
-      // TODO BUSCAR OBJETO! -
-    } catch (Exception e) {
-      _lanzarPopUp(e);
-    }
-  }
-
-  private static void _buscar(Object objABuscar, JList list) {
+  private static void _buscar(Object objABuscar, JList<Object> list) {
     Object objAux;
     Boolean encontrado = true;
     try {
@@ -755,7 +766,6 @@ public class ABMJavaFramework {
           }
         }
         if (encontrado) {
-          System.out.println("Encontrado!!" + objAux);
           objetosBuscados.addElement(objAux);
         } else {
           encontrado = true;
@@ -763,14 +773,6 @@ public class ABMJavaFramework {
       }
     } catch (Exception e) {
       _lanzarPopUp(e);
-    }
-  }
-
-  private static String getNombreAttr(FieldABM fieldAnotation, Field field) {
-    if (fieldAnotation.nombre() != null) {
-      return fieldAnotation.nombre();
-    } else {
-      return field.getName();
     }
   }
 }

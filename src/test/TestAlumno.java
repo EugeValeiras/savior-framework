@@ -23,7 +23,7 @@ public class TestAlumno {
     objetos.addElement(new Alumno("Santiago", "ibanez", 22, "Junin",new Fecha(9,10,1992),false));
     objetos.addElement(new Alumno("Lucas", "Pugliese", 22, "Junin",new Fecha("09101992"),true));
     
-    ABMJavaFramework.start(Alumno.class, objetos);
+    ABMJavaFramework.start(ABMJavaFramework.class, Alumno.class, objetos);
   }
 
 }

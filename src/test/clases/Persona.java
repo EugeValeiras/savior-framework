@@ -43,6 +43,7 @@ public class Persona {
   public Integer numeroCalzado;
 
   @Obligatorio
+  @Buscador
   @FieldABM(nombre = "Casado",representacion = representationType.RADIOBUTTON)
   public Boolean casado;
   
