@@ -7,13 +7,13 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface FieldABM {
-  
-  public enum representationType {
-    TEXTFIELD, RADIOBUTTON, SELECTITEM, DATETIME, AUTOMATICO
-  }
-  
-  String nombre() default "defaultNombreField";
-  representationType representacion() default representationType.AUTOMATICO;
-  
+public @interface Validar {
+
+	public enum ABMJavaFrameworkValidator {
+		SOLO_NUMEROS, SOLO_LETRAS, NO_METHOD;
+	}
+
+	String nombreMetodo() default "NOMETHOD";
+	ABMJavaFrameworkValidator abmValidator() default ABMJavaFrameworkValidator.NO_METHOD;
+	
 }

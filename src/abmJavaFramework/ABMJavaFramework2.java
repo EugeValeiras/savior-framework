@@ -22,11 +22,6 @@ public class ABMJavaFramework2 extends ABMJavaFramework {
   }
   
   @Override
-  public void iniciarBusqueda(JList<Object> list) {
-    JOptionPane.showMessageDialog(frame.getContentPane(), "puedo cambiar la opcion de Iniciar Busqueda");
-  }
-
-  @Override
   public void buscarObjetoALista(JList<Object> list) {
     JOptionPane.showMessageDialog(frame.getContentPane(), "puedo cambiar la opcion de Buscar!!");
   }

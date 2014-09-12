@@ -4,7 +4,9 @@ import abmJavaFramework.annotations.Buscador;
 import abmJavaFramework.annotations.FieldABM;
 import abmJavaFramework.annotations.Obligatorio;
 import abmJavaFramework.annotations.SoloLectura;
+import abmJavaFramework.annotations.Validar;
 import abmJavaFramework.annotations.FieldABM.representationType;
+import abmJavaFramework.annotations.Validar.ABMJavaFrameworkValidator;
 
 //Pedir por el metodo con el nombre get+nombre del field
 //la clase tiene qe ser un bean
@@ -19,16 +21,19 @@ public class Persona {
   @SoloLectura
   @Obligatorio
   @Buscador
+  @Validar(abmValidator = ABMJavaFrameworkValidator.SOLO_LETRAS)
   @FieldABM(nombre = "Apellido")
   public String apellido;
   
   @Buscador
+  @Validar(nombreMetodo = "soloString")
   @FieldABM(nombre = "Lugar de nacimiento",representacion = representationType.TEXTFIELD)
   public String lugarDeNacimiento;
   
   @SoloLectura
   @Obligatorio
   @Buscador
+  @Validar(abmValidator = ABMJavaFrameworkValidator.SOLO_NUMEROS)
   @FieldABM(nombre = "Documento",representacion = representationType.TEXTFIELD)
   public Integer documneto;
   
@@ -58,8 +63,6 @@ public class Persona {
   @FieldABM(nombre = "Primaria Completa",representacion = representationType.RADIOBUTTON)
   public Boolean primariaCompletaCompleta;
 
-  
-  
   public Persona(String nombre, String apellido, String lugarDeNacimiento, Integer documneto, Integer edad, Integer altura, Integer numeroCalzado, Boolean casado, Boolean casaPropia, Boolean secundariaCompleta,
       Boolean primariaCompletaCompleta) {
     this.nombre = nombre;
@@ -170,7 +173,12 @@ public class Persona {
   
   @Override
   public String toString() {
-    return nombre+" "+apellido+" de "+edad+" años, documento "+documneto+" esta casado: "+casado.toString();
+    return nombre+" "+apellido+" de "+" años, documento "+" esta casado: "+casado.toString();
+  }
+  
+  public boolean soloString(){
+  	System.out.println("VALIDACION HECHA POR EL USUARIO");
+  	return true;
   }
 }
 
